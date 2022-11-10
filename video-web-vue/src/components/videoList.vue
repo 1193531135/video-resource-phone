@@ -1,21 +1,30 @@
 <template>
-  <div class="all" :style="`height:${$height}px`">
+  <div class="all" ref="all" :style="`height:${$height}px`">
     <div class="video-con">
-      <div class="video-kuai" v-for="item in videoList" :key="item.name" @click="watching(item.name)">
+      <div
+        class="video-kuai"
+        v-for="item in videoList"
+        :key="item.name"
+        @click="watching(item.name)"
+      >
         <img :src="$baseURL + item.coverImage" />
         <div class="name">{{ item.name }}</div>
         <div class="sign">
-          <el-tag v-if="item.tags.length === 0"
-          size="mini"
-          type="info"
-          effect="dark"
-          >无</el-tag>
           <el-tag
-           v-for="item2 in item.tags" 
-           :key="item2" :color="tags[`${item2}`].color"
-           size="mini"
-           effect="dark"
-           >{{ tags[`${item2}`].name }}</el-tag>
+            v-if="item.tags.length === 0"
+            size="mini"
+            type="info"
+            effect="dark"
+            >无</el-tag
+          >
+          <el-tag
+            v-for="item2 in item.tags"
+            :key="item2"
+            :color="tags[`${item2}`].color"
+            size="mini"
+            effect="dark"
+            >{{ tags[`${item2}`].name }}</el-tag
+          >
         </div>
       </div>
     </div>
@@ -29,17 +38,18 @@ export default {
       videoList: [],
       tags: {},
       relation: {},
-      width:''
+      width: "",
+      top: 0,
     };
   },
   watch: {
-    state: {
-      handler(val) {
-        console.log(val);
-        this.init();
-      },
-      immediate: true,
-    },
+    // // 视频类型的id
+    // state: {
+    //   handler(val) {
+    //     this.init();
+    //   },
+    //   immediate: true,
+    // },
   },
   computed: {
     state() {
@@ -47,8 +57,8 @@ export default {
     },
   },
   methods: {
-    watching(name){
-      this.$router.push(`/watch?id=${name}`)
+    watching(name) {
+      this.$router.push(`/watch?id=${name}`);
     },
     getList() {
       return new Promise((resolve) => {
@@ -90,56 +100,67 @@ export default {
         );
       });
     },
-    init() {
-      (async () => {
-        let videoList = await this.getList();
-        let tags = await this.getTags();
-        let relation = await this.getRelation();
-        // 对videoList添加标签
-        videoList.some(item => {
-            item.tags = []
-            Object.keys(relation).some(item2 => {
-                if(item2 === item.name){
-                    item.tags = relation[item2]
-                }
-            })
-        })
-        // state存在，有筛选条件
-        if (this.state) {
-          //确定筛选视频名称
-          let videoNames = [];
-          Object.keys(relation).some((item) => {
-            let state = false;
-            relation[item].some((item2) => {
-              if (this.state === item2) {
-                state = true;
-              }
-            });
-            state && videoNames.push(item);
+    async init() {
+      let videoList = await this.getList();
+      let tags = await this.getTags();
+      let relation = await this.getRelation();
+      // 对videoList添加标签
+      videoList.some((item) => {
+        item.tags = [];
+        Object.keys(relation).some((item2) => {
+          if (item2 === item.name) {
+            item.tags = relation[item2];
+          }
+        });
+      });
+      // state存在，有筛选条件
+      if (this.state) {
+        //确定筛选视频名称
+        let videoNames = [];
+        Object.keys(relation).some((item) => {
+          let state = false;
+          relation[item].some((item2) => {
+            if (this.state === item2) {
+              state = true;
+            }
           });
-          //   筛选视频
-          let videoList2 = [];
-          videoList.some((item) => {
-            videoNames.some((item2) => {
-              if (item.name === item2) {
-                videoList2.push(item);
-              }
-            });
+          state && videoNames.push(item);
+        });
+        //   筛选视频
+        let videoList2 = [];
+        videoList.some((item) => {
+          videoNames.some((item2) => {
+            if (item.name === item2) {
+              videoList2.push(item);
+            }
           });
-          videoList = videoList2;
-        }
-        this.videoList = videoList;
-        this.tags = tags;
-        this.relation = relation;
-      })();
+        });
+        videoList = videoList2;
+      }
+      this.videoList = videoList;
+      this.tags = tags;
+      this.relation = relation;
     },
   },
   mounted() {
-    this.$set(this,"width",innerWidth)
+    this.$set(this, "width", innerWidth);
+    // 获取srollTop赋值
+    let all = this.$refs["all"];
+    this.top = sessionStorage.getItem("video-top") || 0;
+    // beforeDestroy屁用没有，时时获取top
+    let _this = this;
+    all.addEventListener("scroll", function () {
+      _this.top = this.scrollTop;
+    });
+    this.init();
   },
-  beforeDestroy(){
-    console.log('clear Page')
-  }
+  beforeDestroy() {
+    sessionStorage.setItem("video-top", this.top);
+  },
+  updated() {
+    let all = this.$refs["all"];
+    all.scrollTop = this.top;
+  },
 };
 </script>
 
@@ -180,9 +201,9 @@ img {
 .video-kuai:active {
   opacity: 0.5;
 }
-.sign{
-    padding: 8px;
-    text-align: left;
+.sign {
+  padding: 8px;
+  text-align: left;
 }
 .name {
   margin: auto;

@@ -1,5 +1,5 @@
 <template>
-  <div class="all">
+  <div class="video-detail">
     <el-dialog :visible.sync="dialogShow" ref="dialog">
       <el-table
         ref="table1"
@@ -21,6 +21,8 @@
     </div>
     <video
       class="videos"
+      id="first-video"
+      ref="video"
       controls
       :poster="$baseURL + 'cover_image/' + name + '.jpg'"
     >
@@ -57,7 +59,7 @@ export default {
   },
   methods: {
     backList() {
-      this.$router.push(`/home`)
+      this.$router.go(-1)
     },
     getTags() {
       return new Promise((resolve) => {
@@ -130,7 +132,14 @@ export default {
       this.videoRelation = await this.getRelation();
     })();
   },
-  mounted() {},
+  mounted() {
+    let option = {
+      controls: true,
+      autoplay: false,
+      preload: "auto",
+    };
+    this.$videojs(this.$refs["video"], option);
+  },
 };
 </script>
 
@@ -170,10 +179,10 @@ export default {
   margin-right: 5px;
   margin-bottom: 5px;
 }
-.all >>> .el-dialog {
+.video-detail >>> .el-dialog {
   width: 250px;
 }
-.all >>> .el-dialog .el-button {
+.video-detail >>> .el-dialog .el-button {
   width: 100%;
   margin-top: 20px;
 }
