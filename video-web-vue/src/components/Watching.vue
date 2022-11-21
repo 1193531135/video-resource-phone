@@ -133,12 +133,12 @@ export default {
     })();
   },
   mounted() {
-    let option = {
-      controls: true,
-      autoplay: false,
-      preload: "auto",
-    };
-    this.$videojs(this.$refs["video"], option);
+    // let option = {
+    //   controls: true,
+    //   autoplay: false,
+    //   preload: "auto",
+    // };
+    // this.$videojs(this.$refs["video"], option);
   },
 };
 </script>
