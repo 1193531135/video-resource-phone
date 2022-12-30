@@ -155,20 +155,36 @@ app.post('/add-tags', (req, res) => {
 })
 
 // 文件上传接口
-app.post('add-video', (req, res) => {
+app.post('/add-video', (req, res) => {
   let form = new multiparty.Form({
     // video的路径，这里写成活的
     uploadDir: videosUrl
   })
-  form.parse(req)
-  form.on('field', (name, value) => {
-    console.log('字段', name, value);
-  });
-  form.on('file', (name, file) => {
-    console.log('文件', name, file);
-  });
-  form.on('close', () => {
-    console.log('表单处理完成');
+  form.parse(req,function(err,fields,files){
+    // 对上传文件重命名
+    if(err){
+      console.log(err)
+    }
+    // 准备新命名的最新文件名
+    let fileName = fields.fileName[0]
+    // 用文件临时文件名保存的文件路径
+    let fileUrl = files.file[0].path
+    // 获取文件夹下列表看看是否有重名
+    let isRepeatName = fs.readdirSync(videosUrl).filter(i => i === fileName)
+    // 判断是否重名
+    if(isRepeatName.length > 0){
+      // 删除文件并返回错误
+      fs.unlinkSync(fileUrl)
+      res.send({
+        code:302,
+        msg:'File Renamed'
+      })
+    }else{
+      // 通过保存后进行改名，如果有tag，保存tag
+      fs.renameSync(fileUrl,videosUrl + fileName)
+      let tags = fields.tags[0].split(',')
+      tags?.some(i => console.log(i))
+    }
   })
 })
 

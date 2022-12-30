@@ -52,7 +52,7 @@ export default {
       },
       allH: 0,
       allW: 0,
-      options: ["Home", "Sort"],
+      options: ["Home", "Sort",'Upload'],
       colors:[]
     };
   },
@@ -86,6 +86,12 @@ export default {
           return false
         }
         this.$router.push('/sort')
+      }
+      if(name === 'Upload'){
+        if(this.$route.fullPath === '/upload'){
+          return false
+        }
+        this.$router.push('/upload')
       }
     },
     touch(e) {

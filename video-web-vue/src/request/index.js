@@ -20,9 +20,18 @@ let request = function(url,data,func,method = 'post'){
     })
 }
 
+let uploadFile = function(formData,func,thenFunc){
+  axios1({
+    method:'post',
+    url:'/add-video',
+    data:formData,
+    onUploadProgress:func
+  }).then(thenFunc)
+}
+
 axios1.interceptors.request.use((config) => {
     // config.data = qs.stringify(config.data)
     return config
 })
 
-export default {request,baseURL} 
+export default {request,baseURL,uploadFile} 

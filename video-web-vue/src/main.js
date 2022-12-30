@@ -11,6 +11,7 @@ Vue.use(ElementUI)
 Vue.config.productionTip = false
 Vue.prototype.$request = axios.request
 Vue.prototype.$baseURL = axios.baseURL
+Vue.prototype.$uploadFile = axios.uploadFile
 Vue.prototype.$videojs = videojs
 router.beforeEach((to,from,next) => {
   next()
