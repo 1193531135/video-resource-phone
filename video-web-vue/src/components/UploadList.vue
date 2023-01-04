@@ -52,7 +52,7 @@
               :percentage="percentageConfig[item.key]"
               :color="customColors"
             ></el-progress>
-            <div v-show="errorText[item.key]">{{ errorText[item.key] }}</div>
+            <div v-show="errorText[item.key]" class="error-text">{{ errorText[item.key] }}</div>
           </el-card>
         </div>
       </div>
@@ -67,6 +67,7 @@ export default {
       isUpload: false,
       fileList: [],
       percentageConfig: {},
+      percentageStatus: {},
       errorText:{},
       newNameConfig: {},
       customColors: [
@@ -87,6 +88,7 @@ export default {
   },
   methods: {
     uploadFiles() {
+      let count = 0
       for (let item of this.fileList) {
         // 准备上传数据
         let formData = new FormData();
@@ -97,11 +99,20 @@ export default {
         this.$uploadFile(
           formData,
           res => {
-            this.percentageConfig[item.key] = (res.loaded/res.total)*100
+            this.percentageConfig[item.key] = parseInt((res.loaded/res.total)*100)
           },
           res => {
+            count += 1
+            // 全部上传流程走完刷新列表
+            if(count === this.fileList.length){
+              this.$request('/update-list',{},() => {},'get')
+            }
             if(res.data.code === 302){
-              this.errorText[item.key] = res.data.msg
+              this.errorText[item.key] = `Error:${res.data.msg}`
+              this.percentageConfig[item.key] = false
+            }
+            if(res.data.code === 200){
+              this.errorText[item.key] = ``
             }
           }
         );
@@ -152,6 +163,9 @@ export default {
       let str = `${percentage}%`;
       if (percentage === 0) {
         str = "connect...";
+      }
+      if (percentage === 100) {
+        str = "success";
       }
       return str;
     },
@@ -254,6 +268,10 @@ export default {
 .el-tag {
   margin-right: 5px;
   margin-bottom: 5px;
+}
+.error-text{
+  color: #f56c6c;
+  font-weight: 700;
 }
 /* dialog */
 .el-dialog {

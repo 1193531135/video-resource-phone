@@ -30,8 +30,9 @@ let videosUrl = './watch/', imageUrl = './cover_image/'
 // 指定静态目录
 app.use(express.static('./'))
 let sendData = []  //发送的列表数据
+// 创建videoList
 function createVideoList() {
-  let videoArray = [], imageArray = [], mkvArray = []
+  let videoArray = [], imageArray = [], mkvArray = [],sendDataBackup = []
   // 创建promise容器
   let promiseAll = []
   function mkvToMp4(name) {
@@ -102,7 +103,7 @@ function createVideoList() {
           state = true
         }
       })
-      sendData.push({
+      sendDataBackup.push({
         name: item2,
         coverImage: `${imageUrl + item2}.jpg`,
         videoUrl: `${videosUrl + item2}.mp4`
@@ -112,12 +113,21 @@ function createVideoList() {
         promiseAll.push(createImage(item2))
       }
     })
+    sendData = sendDataBackup
     // 开始初始化
     console.log('开始初始化')
     Promise.all(promiseAll).then((data) => {
       console.log(data)
     })
   }
+}
+// tag JSON文件修改添加 data格式{ [String]:[Array] }
+function changeTag(data){
+    // 读取tags JSON
+    let a = JSON.parse(fs.readFileSync('./table/videoTag.json'))
+    let name = Object.keys(data)[0]
+    a[name] = data[name]
+    fs.writeFileSync('./table/videoTag.json', JSON.stringify(a, null, 2))
 }
 createVideoList()
 
@@ -182,9 +192,27 @@ app.post('/add-video', (req, res) => {
     }else{
       // 通过保存后进行改名，如果有tag，保存tag
       fs.renameSync(fileUrl,videosUrl + fileName)
-      let tags = fields.tags[0].split(',')
-      tags?.some(i => console.log(i))
+      console.log(fields.tags[0])
+      let tags = fields.tags[0]
+      if(tags){
+        tags = tags.split(',')
+        let name = fileName.match(/^([^.]{1,}).[^.]{1,}$/)[1]
+        changeTag({ [name]:tags.map(i => Number(i)) })
+      }
+      res.send({
+        code:200,
+        msg:'success'
+      })
     }
+  })
+})
+
+// 文件列表刷新接口
+app.get('/update-list', (req, res) => {
+  createVideoList()
+  res.send({
+    code:200,
+    msg:'success'
   })
 })
 
